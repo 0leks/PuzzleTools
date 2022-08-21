@@ -1,0 +1,46 @@
+body {
+    background-color: rgb(227, 227, 227);
+}
+
+.nodeRect {
+    fill-opacity: .5;
+    rx: 50%;
+}
+
+.link {
+    stroke: #777;
+    stroke-width: 2px;
+}
+
+#sim {
+    border: 1px solid;
+}
+
+svg {
+    border: 1px solid;
+    min-height: 700px;
+}
+
+.content {
+    display: flex;
+    flex-grow: 1;
+}
+
+.ui {
+    display: flex;
+    flex-direction: column;
+}
+
+textarea {
+    flex-grow: 1;
+}
+
+#sim {
+    /* flex- */
+    flex-grow: 1;
+}
+
+.nodetext {
+    pointer-events: none;
+    text-anchor: middle;
+}
