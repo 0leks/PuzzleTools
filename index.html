@@ -6,13 +6,13 @@
         <title>Word Chain Solver</title>
     </head>
     <body>
-        <h1>Word Chain Solver</h1>
 
         <div class="content">
             
             <form class="ui" action="#" onsubmit="addWordFormSubmit()">
+                <h1>Word Chain Solver</h1>
                 <textarea id="wordstoadd" cols="10"> </textarea>
-                <button type="submit">Add</button>
+                <button type="submit" style="min-height: 3em;">Add</button>
                 <div>
                     <label for="charge">Charge</label>
                     <input type="range" id="charge" name="charge" min="-200" max="-10" value="-40" oninput="updateSettings()" onchange="updateSettings()">
@@ -29,7 +29,8 @@
             </form>
 
             <svg id="sim2svg">
-
+                <g class="links"></g>
+                <g class="nodes"></g>
             </svg>
         </div>
 

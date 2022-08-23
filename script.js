@@ -36,8 +36,8 @@ const NODE_WIDTH = 40;
 const NODE_HEIGHT = 20;
 
 const FIXED_COLOR = "#0F0"
-const REGULAR_COLOR = "#88F"
-const NEIGHBOR_COLOR = "#CCC"
+const REGULAR_COLOR = "#5AF"
+const NEIGHBOR_COLOR = "#AAA"
 
 const WORD_GRAPH = preprocessWords(OFFICIAL_WORD_LIST);
 const SVG =  d3.select('#sim2svg');
@@ -49,6 +49,12 @@ force.linkStrength(linkStrength)
 force.charge(linkCharge)
 force.chargeDistance(300)
 force.gravity(.001)
+force.on('tick.end', updatePositions);
+
+let nodes = force.nodes();
+let links = force.links();
+let linkSelection = SVG.select(".links").selectAll('.link');
+let nodeSelection = SVG.select(".nodes").selectAll('.node');
 
 let inputWordList = [];
 
@@ -61,7 +67,7 @@ function updateSettings() {
     settings.charge = parseInt(document.getElementById("charge").value);
     settings.linkDistance = parseInt(document.getElementById("linkDistance").value);
     settings.linkStrength = parseFloat(document.getElementById("linkStrength").value);
-    force.start();
+    force.resume();
 }
 
 updateSettings();
@@ -96,19 +102,17 @@ function linkCharge(node) {
 }
 
 // List of nodes
-let nodes = [];
+// let nodes = [];
 // Dictionary of word -> node
 let nodesDict = {};
 let nodeIDCounter = 0;
-let links = [];
+// let links = [];
 let linksDict = {};
 
 function updateSize() {
     svgSize = document.getElementById("sim2svg").getBoundingClientRect();
     force.size([svgSize.width, svgSize.height])
-    console.log("setting size to " + svgSize.width + ", " + svgSize.height);
 }
-
 addEventListener('resize', (event) => {updateSize()});
 new ResizeObserver(updateSize);
 updateSize();
@@ -126,7 +130,7 @@ function addNode(wordtoadd) {
         word: wordtoadd, 
         x:svgSize.width/2 + nodes.length, 
         y: svgSize.height/2 + nodes.length%3 - 1, 
-        vx: 0, vy: 0, color: NEIGHBOR_COLOR};
+        color: NEIGHBOR_COLOR};
     nodesDict[wordtoadd] = newnode;
     nodes.push(newnode);
     return newnode;
@@ -162,7 +166,7 @@ function addNeighborLinks(node, onlyToImportant = false) {
             if (doesNodeExist(neighbor)) {
                 let neighbornode = addNode(neighbor);
                 // already linked
-                if (node.id in linksDict && linksDict[node.id].has(neighbornode.id)) {
+                if (node.id in linksDict && linksDict[node.id].has(neighbornode)) {
                     continue;
                 }
                 if (onlyToImportant && neighbornode.color == NEIGHBOR_COLOR) {
@@ -200,11 +204,11 @@ function possiblyDeleteNode(node) {
         delete nodesDict[node.word]
         console.log('deleting node ' + node.word);
         nodes = nodes.filter(n => n != node);
+        force.nodes(nodes);
     }
 }
 
 function removeNeighborLinks(node, recurse=true) {
-
     links = links.filter(link => {
         let thisNode = null;
         let otherNode = null;
@@ -229,15 +233,12 @@ function removeNeighborLinks(node, recurse=true) {
         }
         return true;
     });
-    SVG.selectAll("*").remove();
-    force.nodes(nodes).links(links);
-    resetSim();
+    force.links(links);
 }
 
-function addWord(wordtoadd, includeNeighbors, fixed) {
+function addWord(wordtoadd, includeNeighbors) {
     console.log("adding word " + wordtoadd);
     let newnode = addNode(wordtoadd);
-    // newnode.fixed = fixed;
     if (newnode.fixed) {
         newnode.color = FIXED_COLOR;
     }
@@ -251,10 +252,10 @@ function addWord(wordtoadd, includeNeighbors, fixed) {
     }
     addNeighborLinks(newnode);
 
-    SVG.selectAll("*").remove();
-    force.nodes(nodes).links(links);
+    // SVG.selectAll("*").remove();
+    // force.nodes(nodes).links(links);
     
-    resetSim();
+    // resetSim();
     return newnode;
 }
 
@@ -279,11 +280,11 @@ function toggleWord(wordtoadd) {
     }
     else {
         node.showNeighbors = true;
-        addWord(wordtoadd, true, false);
+        addWord(wordtoadd, true);
     }
     updateNodeColor(node);
+    resetSim();
 }
-
 
 function loadWordsFromStorage() {
     let words = localStorage.getItem('words');
@@ -296,6 +297,7 @@ function loadWordsFromStorage() {
     WORDS_TEXT_AREA.value = words.join(' ');
     return words;
 }
+
 const WORDS_TEXT_AREA = document.getElementById("wordstoadd");
 loadWordsFromStorage();
 
@@ -306,57 +308,37 @@ function getWords() {
     return inputWordList;
 }
 
+let firstAddition = true;
 function addWordFormSubmit() {
     for (let word of getWords()) {
-        let newnode = addWord(word, false, false);
+        let newnode = addWord(word, false);
         newnode.color = REGULAR_COLOR;
     }
-    // let wordtoadd = document.getElementById("wordtoadd").value;
-}
-
-function createGraph(words) {
-    let nodes = []; 
-    let links = [];
-    for (let w of words) {
-        let column = (nodes.length) % 10 + 1;
-        let row = Math.floor(nodes.length / 10) + 1;
-        let node = {word: w, x:column*(NODE_WIDTH + 20), y: row*(NODE_HEIGHT + 20), vx: 0, vy: 0, color: REGULAR_COLOR}
-        if (w == 'STAR' || w == 'TREK') {
-            node.fixed = true;
-            node.color = FIXED_COLOR;
-        }
-        nodes.push( node );
+    if (firstAddition) {
+        // force.nodes(nodes).links(links);
+        firstAddition = false;
     }
-
-    for (let index1 = 0; index1 < nodes.length - 1; index1++) {
-        let n1 = nodes[index1];
-        for (let index2 = index1 + 1; index2 < nodes.length; index2++) {
-            let n2 = nodes[index2];
-            if (compareWords(n1.word, n2.word) == 1) {
-                links.push({source: index1, target: index2})
-                links.push({source: index2, target: index1})
-            }
-        }
-    }
-    return {nodes, links}
+    resetSim();
 }
 
 let nodegroups = null;
 let nodecircles = null;
 let linkdata = null;
 function updatePositions() {
-
-    nodegroups
+    nodeSelection
         .attr("transform", d => {
             d.x = Math.max(NODE_WIDTH/2, Math.min(svgSize.width - NODE_WIDTH/2, d.x));
             d.y = Math.max(NODE_HEIGHT/2, Math.min(svgSize.height - NODE_HEIGHT/2, d.y));
             return "translate(" + d.x + "," + d.y + ")";
         });
-    
-    nodecircles
-        .attr('fill', d => d.color)
 
-    linkdata.attr('x1', function(d) { return d.source.x; })
+    nodeSelection.select("rect")
+            .attr('fill', d => d.color)
+            .attr('stroke', d => {
+                return d.hovered ? '#000' : (d.showNeighbors ? FIXED_COLOR : d.color)
+            })
+
+    linkSelection.attr('x1', function(d) { return d.source.x; })
         .attr('y1', function(d) { return d.source.y; })
         .attr('x2', function(d) { return d.target.x; })
         .attr('y2', function(d) { return d.target.y; })
@@ -374,65 +356,70 @@ function updatePositions() {
 }
 
 function resetSim() {
-
-    force.nodes(nodes).links(links).start();
-
-    linkdata = SVG.selectAll('.link').data(links);
-    linkdata.exit().remove();
-    linkdata.enter()
-            .append('line')
-            .attr('class', 'link');
-    
-    let nodedata = SVG.selectAll('.node').data(nodes);
-    nodedata.exit().remove();
-    nodegroups = nodedata.enter()
-            .append("g")
-
-    nodegroups.append('text')
-            .attr('class', 'nodetext')
-            .attr("dominant-baseline", "central")
-            .text(d => d.word);
-            
-    nodecircles = nodegroups
-            .append('rect')
-            .attr('class', 'nodeRect')
-            .attr('x', -NODE_WIDTH/2)
-            .attr('y', -NODE_HEIGHT/2)
-            .attr('width', NODE_WIDTH)
-            .attr('height', NODE_HEIGHT);
-
     let drag = force.drag()
             .on("dragstart", dragstart)
             .on("dragend", dragend)
             .on("drag", dragged);
-        
-    nodegroups
+
+    linkSelection = linkSelection.data(links, d => d.source.id + '-' + d.target.id);
+    linkSelection.enter()
+            .insert('line')
+            .attr('class', 'link');
+    
+    linkSelection.exit().remove();
+
+    
+    nodeSelection = nodeSelection.data(nodes, d => d.id);
+
+    nodegroups = nodeSelection.enter()
+            .insert('g')
+            .attr('class', 'node')
             .call(drag)
             .on('contextmenu', rightclick)
             .on('mouseover', mouseover)
             .on("mouseout", mouseout)
             .on('dblclick', dblclick)
             .on('click', click)
-
-    force.on('tick.end', updatePositions);
     
-    updatePositions();
+    nodegroups.append('text')
+            .attr('class', 'nodetext')
+            .attr("dominant-baseline", "central")
+            .text(d => d.word)
+    
+    nodegroups.append('rect')
+            .attr('class', 'nodeRect')
+            .attr('x', -NODE_WIDTH/2)
+            .attr('y', -NODE_HEIGHT/2)
+            .attr('width', NODE_WIDTH)
+            .attr('height', NODE_HEIGHT)
+
+    nodeSelection.exit()
+            // .transition().duration(2000).attr("x", 0)
+            .remove();
+
+    force.start();
 }
 
-function mouseover() {
-    d3.select(this).select("rect").attr("stroke", "#000")
+function mouseover(d) {
+    d.hovered = true;
+    updatePositions();
+    // d3.select(this).select("rect").attr("stroke", "#000")
 }
 function mouseout(d) {
-    d3.select(this).select("rect").attr("stroke", null)
+    delete d.hovered;
+    updatePositions();
+    // d.strokeColor = "#F00";
+    // d3.select(this).select("rect").attr("stroke", null)
 }
 function rightclick(d) {
     d3.event.preventDefault();
     d.fixed = !d.fixed;
     updateNodeColor(d);
+    updatePositions();
 }
 
 function dblclick(d) {
-    toggleWord(d.word, true, false);
+    toggleWord(d.word);
 }
 
 function click() {
