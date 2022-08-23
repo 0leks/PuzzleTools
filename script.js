@@ -96,8 +96,11 @@ function linkCharge(node) {
     }
 }
 
+// List of nodes
 let nodes = [];
+// Dictionary of word -> node
 let nodesDict = {};
+let nodeIDCounter = 0;
 let links = [];
 let linksDict = {};
 
@@ -117,56 +120,111 @@ function doesNodeExist(wordtoadd) {
 
 function addNode(wordtoadd) {
     if (doesNodeExist(wordtoadd)) {
-        return nodes[nodesDict[wordtoadd]];
+        return nodesDict[wordtoadd];
     }
     let newnode = {
-        id: nodes.length, 
+        id: nodeIDCounter++, 
         word: wordtoadd, 
         x:svgSize.width/2 + nodes.length, 
         y: svgSize.height/2 + nodes.length%3 - 1, 
         vx: 0, vy: 0, color: NEIGHBOR_COLOR};
-    nodesDict[wordtoadd] = nodes.length;
+    nodesDict[wordtoadd] = newnode;
     nodes.push(newnode);
     return newnode;
 }
 
-function addNeighborLinks(node) {
+function getNodeByID(id) {
+    for (let n of nodes) {
+        if (n.id == id) {
+            return n;
+        }
+    }
+    return null;
+}
+
+function isNeighborOfImportantNodeThatsNotMe(node, me) {
+    if (node.id in linksDict) {
+        for (let neighbor of linksDict[node.id]) {
+            if (neighbor == me.id) {
+                continue;
+            }
+            let neighborNode = getNodeByID(neighbor);
+            if (neighborNode.color != NEIGHBOR_COLOR) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+function addNeighborLinks(node, onlyToImportant = false) {
     for (let neighbor of OFFICIAL_WORD_LIST) {
         if (compareWords(node.word, neighbor) == 1) {
             if (doesNodeExist(neighbor)) {
                 let neighbornode = addNode(neighbor);
-                let s = Math.min(node.id, neighbornode.id);
-                let t = Math.max(node.id, neighbornode.id);
-                if (s in linksDict && linksDict[s].has(t)) {
+                // already linked
+                if (node.id in linksDict && linksDict[node.id].has(neighbornode.id)) {
                     continue;
                 }
-                links.push({source: s, target: t});
-                
-                if (!(s in linksDict)) {
-                    linksDict[s] = new Set();
+                if (onlyToImportant && neighbornode.color == NEIGHBOR_COLOR) {
+                    continue;
                 }
-                linksDict[s].add(t)
+                if (!(node.id in linksDict)) {
+                    linksDict[node.id] = new Set();
+                }
+                linksDict[node.id].add(neighbornode);
+                if (!(neighbornode.id in linksDict)) {
+                    linksDict[neighbornode.id] = new Set();
+                }
+                linksDict[neighbornode.id].add(node);
+
+                if (node.id < neighbornode.id) {
+                    links.push({source: node, target: neighbornode});
+                }
+                else {
+                    links.push({source: neighbornode, target: node});
+                }
             }
         }
     }
 }
 
-function removeNeighborLinks(node) {
+function possiblyDeleteNode(node) {
+    let numRemainingLinks = 0;
+    if (node.id in linksDict) {
+        // for (let secondLink of linksDict[node.id]) {
+        //     removeNeighborLinks(secondLink, false);
+        // }
+        numRemainingLinks += linksDict[node.id].size;
+    }
+    if (numRemainingLinks == 0) {
+        delete nodesDict[node.word]
+        console.log('deleting node ' + node.word);
+        nodes = nodes.filter(n => n != node);
+    }
+}
+
+function removeNeighborLinks(node, recurse=true) {
 
     links = links.filter(link => {
+        let thisNode = null;
+        let otherNode = null;
         if (link.source.id == node.id) {
-            if (nodes[link.target.id].color == NEIGHBOR_COLOR) {
-                let s = Math.min(node.id, link.target.id);
-                let t = Math.max(node.id, link.target.id);
-                linksDict[s].delete(t);
-                return false;
-            }
+            thisNode = link.source;
+            otherNode = link.target;
         }
         else if (link.target.id == node.id) {
-            if (nodes[link.source.id].color == NEIGHBOR_COLOR) {
-                let s = Math.min(node.id, link.source.id);
-                let t = Math.max(node.id, link.source.id);
-                linksDict[s].delete(t);
+            thisNode = link.target;
+            otherNode = link.source;
+        }
+        if (thisNode && otherNode) {
+            console.log('observing ' + otherNode.word);
+            if (otherNode.color == NEIGHBOR_COLOR) {
+                linksDict[otherNode.id].delete(thisNode);
+                linksDict[thisNode.id].delete(otherNode);
+                if (recurse) {
+                    possiblyDeleteNode(otherNode);
+                }
                 return false;
             }
         }
@@ -189,7 +247,10 @@ function addWord(wordtoadd, includeNeighbors, fixed) {
     if (includeNeighbors) {
         for (let neighborWord of WORD_GRAPH[wordtoadd]) {
             let neighborNode = addNode(neighborWord);
-            addNeighborLinks(neighborNode);
+            addNeighborLinks(neighborNode, true);
+            // if (isNeighborOfImportantNodeThatsNotMe(neighborNode, newnode)) {
+            //     addNeighborLinks(neighborNode, true);
+            // }
         }
     }
     addNeighborLinks(newnode);
@@ -197,8 +258,7 @@ function addWord(wordtoadd, includeNeighbors, fixed) {
     console.log(links);
 
     SVG.selectAll("*").remove();
-    force.nodes(nodes)
-        .links(links);
+    force.nodes(nodes).links(links);
     
     resetSim();
     return newnode;
@@ -298,7 +358,6 @@ function mouseout(d) {
     d3.select(this).select("rect").attr("stroke", null)
 }
 function rightclick(d) {
-    d3.select(this).select("rect").attr("fill", "#F00")
     d3.event.preventDefault();
 
     toggleWord(d.word, true, true);
@@ -357,10 +416,15 @@ function resetSim() {
     nodedata.exit().remove();
     nodegroups = nodedata.enter()
             .append("g")
-            .call(force.drag)
-            .on('contextmenu', rightclick)
-            .on('mouseover', mouseover)
-            .on("mouseout", mouseout)
+            // .call(force.drag)
+            // .on('contextmenu', rightclick)
+            // .on('mouseover', mouseover)
+            // .on("mouseout", mouseout)
+
+    nodegroups.append('text')
+            .attr('class', 'nodetext')
+            .attr("dominant-baseline", "central")
+            .text(d => d.word);
             // .on("mousedown", mousepress) // TODO figure out how to not break physics
             
     nodecircles = nodegroups
@@ -370,18 +434,21 @@ function resetSim() {
             .attr('y', -NODE_HEIGHT/2)
             .attr('width', NODE_WIDTH)
             .attr('height', NODE_HEIGHT);
-    
-    var nodetext = nodegroups
-            .append('text')
-            .attr('class', 'nodetext')
-            .attr("dominant-baseline", "central")
-            .text(d => d.word);
+    nodegroups
+            .call(force.drag)
+            .on('contextmenu', rightclick)
+            .on('mouseover', mouseover)
+            .on("mouseout", mouseout)
+    // var nodetext = nodegroups
+    //         .append('text')
+    //         .attr('class', 'nodetext')
+    //         .attr("dominant-baseline", "central")
+    //         .text(d => d.word);
   
 
     force.on('tick.end', updatePositions);
     
     updatePositions();
-    force.start();
 }
 
 function stopButton() {

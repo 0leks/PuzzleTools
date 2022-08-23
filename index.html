@@ -2,45 +2,36 @@
 
 <html>
     <head>
-        <link rel="stylesheet" href="style.css">
+        <link rel="stylesheet" href="/style.css">
         <title>Word Chain Solver</title>
     </head>
     <body>
         <h1>Word Chain Solver</h1>
 
         <div class="content">
-            <div class="ui">
+            
+            <form class="ui" action="#" onsubmit="addWordFormSubmit()">
+                <textarea id="wordstoadd" cols="10"> </textarea>
+                <button type="submit">Add</button>
                 <div>
-                    <button onclick="stopButton()">Stop</button>
-                    <button onclick="resumeButton()">Resume</button>
-                    <button onclick="resetButton()">Reset</button>
+                    <label for="charge">Charge</label>
+                    <input type="range" id="charge" name="charge" min="-200" max="-10" value="-40" oninput="updateSettings()" onchange="updateSettings()">
+                    
+                    <label for="linkDistance">linkDistance</label>
+                    <input type="range" id="linkDistance" name="linkDistance" min="10" max="200" value="70" oninput="updateSettings()" onchange="updateSettings()">
+                    
+                    <label for="linkStrength">linkStrength</label>
+                    <input type="range" id="linkStrength" name="linkStrength" min="0" max="1" step="0.05" value="0.8" oninput="updateSettings()" onchange="updateSettings()">
                 </div>
-                <textarea id="wordsarea" cols="20">
-                </textarea>
-            </div>
-    
-            <div id="sim">
-                <svg id="svgid">
-
-                </svg>
-            </div>
-        </div>
-
-        <div class="content">
-            <div class="ui">
-                <input type="text" value="tree" placeholder="word 1" id="chainend1">
-                <input type="text" value="fret" placeholder="word 2" id="chainend2">
-                <input type="number" value="3" placeholder="num jumps" id="chainlength">
-                <button type="submit" onclick="computeChainsButton()">Submit</button>
-                <button type="submit" onclick="cancelCompute()">Cancel</button>
-                <button type="submit" onclick="clearPaths()">Clear</button>
-            </div>
-            <div id="chainpaths">
                 
-            </div>
+            </form>
+
+            <svg id="sim2svg">
+
+            </svg>
         </div>
 
         <script src="https://d3js.org/d3.v3.min.js"></script>
-        <script src="script2.js"></script>
+        <script src="/script.js"></script>
     </body>
 </html>

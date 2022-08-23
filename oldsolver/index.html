@@ -1,0 +1,46 @@
+
+
+<html>
+    <head>
+        <link rel="stylesheet" href="style.css">
+        <title>Word Chain Solver</title>
+    </head>
+    <body>
+        <h1>Word Chain Solver</h1>
+
+        <div class="content">
+            <div class="ui">
+                <div>
+                    <button onclick="stopButton()">Stop</button>
+                    <button onclick="resumeButton()">Resume</button>
+                    <button onclick="resetButton()">Reset</button>
+                </div>
+                <textarea id="wordsarea" cols="20">
+                </textarea>
+            </div>
+    
+            <div id="sim">
+                <svg id="svgid">
+
+                </svg>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="ui">
+                <input type="text" value="tree" placeholder="word 1" id="chainend1">
+                <input type="text" value="fret" placeholder="word 2" id="chainend2">
+                <input type="number" value="3" placeholder="num jumps" id="chainlength">
+                <button type="submit" onclick="computeChainsButton()">Submit</button>
+                <button type="submit" onclick="cancelCompute()">Cancel</button>
+                <button type="submit" onclick="clearPaths()">Clear</button>
+            </div>
+            <div id="chainpaths">
+                
+            </div>
+        </div>
+
+        <script src="https://d3js.org/d3.v3.min.js"></script>
+        <script src="script2.js"></script>
+    </body>
+</html>
