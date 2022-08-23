@@ -42,6 +42,9 @@ const NEIGHBOR_COLOR = "#AAA"
 const WORD_GRAPH = preprocessWords(OFFICIAL_WORD_LIST);
 const SVG =  d3.select('#sim2svg');
 
+
+// Great example on how to properly set up d3 stuff: http://bl.ocks.org/tgk/6068367
+
 let svgSize = {width: 100, height: 100}
 const force = d3.layout.force();
 force.linkDistance(linkDistance);
@@ -246,16 +249,17 @@ function addWord(wordtoadd, includeNeighbors) {
 
     if (includeNeighbors) {
         for (let neighborWord of WORD_GRAPH[wordtoadd]) {
+            let alreadyExisted = doesNodeExist(neighborWord);
             let neighborNode = addNode(neighborWord);
+            if (!alreadyExisted) {
+                neighborNode.x = newnode.x + Math.random()*100 - 50;
+                neighborNode.y = newnode.y + Math.random()*100 - 50;
+            }
             addNeighborLinks(neighborNode, true);
         }
     }
     addNeighborLinks(newnode);
 
-    // SVG.selectAll("*").remove();
-    // force.nodes(nodes).links(links);
-    
-    // resetSim();
     return newnode;
 }
 
