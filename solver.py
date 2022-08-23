@@ -33,9 +33,36 @@ def computeNeighbors(nodes):
                 n1.neighbors.add(n2)
                 n2.neighbors.add(n1)
 
-nodes = [Node(word) for word in wordlist]
-print(nodes)
+def loadWords(filename):
+    with open(filename) as f:
+        wordSet = set()
+        for line in f:
+            words = line.strip().split(' ')
+            for word in words:
+                wordSet.add(word)
+    return wordSet
+
+
+words = loadWords('4letterwords.txt')
+
+print(f'{len(words)} unique 4 letter words')
+
+
+nodes = [Node(word) for word in words]
 
 computeNeighbors(nodes)
-for n in nodes:
-    print(n)
+
+neighborlessNodes = {node for node in nodes if len(node.neighbors) == 0}
+
+print(f'# words with no neighbors: {len(neighborlessNodes)}')
+
+finalNodes = {node for node in nodes if len(node.neighbors) > 0}
+
+print(f'final # of nodes: {len(finalNodes)}')
+
+
+with open('4letterwords2.txt', 'w') as f:
+    for node in finalNodes:
+        f.write(node.word)
+        f.write(' ')
+

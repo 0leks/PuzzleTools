@@ -4,12 +4,14 @@ body {
 
 .nodeRect {
     fill-opacity: .5;
-    rx: 50%;
+    /* rx: 50%; */
 }
 
 .link {
-    stroke: #777;
+    /* stroke: rgb(135, 135, 135); */
     stroke-width: 2px;
+    fill-opacity: .5;
+    stroke-opacity: .5;
 }
 
 #sim {
@@ -29,6 +31,7 @@ svg {
 .ui {
     display: flex;
     flex-direction: column;
+    flex-grow: 1;
 }
 
 textarea {
@@ -43,4 +46,15 @@ textarea {
 .nodetext {
     pointer-events: none;
     text-anchor: middle;
+    font-size: .8rem;
+}
+
+#chainpaths {
+    padding: 1rem;
+}
+
+
+#sim2svg {
+    width: 100%;
+    border: 1px solid black;
 }

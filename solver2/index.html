@@ -1,0 +1,37 @@
+
+
+<html>
+    <head>
+        <link rel="stylesheet" href="/style.css">
+        <title>Word Chain Solver</title>
+    </head>
+    <body>
+        <h1>Word Chain Solver</h1>
+
+        <div class="content">
+            
+            <form class="ui" action="#" onsubmit="addWordFormSubmit()">
+                <textarea id="wordstoadd" cols="10"> </textarea>
+                <button type="submit">Add</button>
+                <div>
+                    <label for="charge">Charge</label>
+                    <input type="range" id="charge" name="charge" min="-200" max="-10" value="-40" oninput="updateSettings()" onchange="updateSettings()">
+                    
+                    <label for="linkDistance">linkDistance</label>
+                    <input type="range" id="linkDistance" name="linkDistance" min="10" max="200" value="70" oninput="updateSettings()" onchange="updateSettings()">
+                    
+                    <label for="linkStrength">linkStrength</label>
+                    <input type="range" id="linkStrength" name="linkStrength" min="0" max="1" step="0.05" value="0.8" oninput="updateSettings()" onchange="updateSettings()">
+                </div>
+                
+            </form>
+
+            <svg id="sim2svg">
+
+            </svg>
+        </div>
+
+        <script src="https://d3js.org/d3.v3.min.js"></script>
+        <script src="/script.js"></script>
+    </body>
+</html>
