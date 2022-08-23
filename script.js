@@ -42,8 +42,7 @@ const NEIGHBOR_COLOR = "#CCC"
 const WORD_GRAPH = preprocessWords(OFFICIAL_WORD_LIST);
 const SVG =  d3.select('#sim2svg');
 
-let BOUNDARY_GAP = 10;
-let svgSize = {width: 1, height: 1}
+let svgSize = {width: 100, height: 100}
 const force = d3.layout.force();
 force.linkDistance(linkDistance);
 force.linkStrength(linkStrength)
@@ -238,7 +237,7 @@ function removeNeighborLinks(node, recurse=true) {
 function addWord(wordtoadd, includeNeighbors, fixed) {
     console.log("adding word " + wordtoadd);
     let newnode = addNode(wordtoadd);
-    newnode.fixed = fixed;
+    // newnode.fixed = fixed;
     if (newnode.fixed) {
         newnode.color = FIXED_COLOR;
     }
@@ -248,14 +247,9 @@ function addWord(wordtoadd, includeNeighbors, fixed) {
         for (let neighborWord of WORD_GRAPH[wordtoadd]) {
             let neighborNode = addNode(neighborWord);
             addNeighborLinks(neighborNode, true);
-            // if (isNeighborOfImportantNodeThatsNotMe(neighborNode, newnode)) {
-            //     addNeighborLinks(neighborNode, true);
-            // }
         }
     }
     addNeighborLinks(newnode);
-
-    console.log(links);
 
     SVG.selectAll("*").remove();
     force.nodes(nodes).links(links);
@@ -276,20 +270,16 @@ function updateNodeColor(node) {
     }
 }
 
-function toggleWord(wordtoadd, includeNeighbors, fixed) {
+function toggleWord(wordtoadd) {
     let node = addNode(wordtoadd);
 
-    if (node.color == FIXED_COLOR) {
-        node.fixed = false;
+    if (node.showNeighbors) {
+        node.showNeighbors = false;
         removeNeighborLinks(node);
     }
-    else if (node.color == REGULAR_COLOR) {
-        node.fixed = true;
-        addWord(wordtoadd, true, true);
-    }
     else {
-        node.fixed = true;
-        addWord(wordtoadd, true, true);
+        node.showNeighbors = true;
+        addWord(wordtoadd, true, false);
     }
     updateNodeColor(node);
 }
@@ -351,25 +341,6 @@ function createGraph(words) {
     return {nodes, links}
 }
 
-function mouseover() {
-    d3.select(this).select("rect").attr("stroke", "#000")
-}
-function mouseout(d) {
-    d3.select(this).select("rect").attr("stroke", null)
-}
-function rightclick(d) {
-    d3.event.preventDefault();
-
-    toggleWord(d.word, true, true);
-}
-
-function mousepress(d) {
-    console.log(d)
-    d.fixed = !d.fixed;
-    d.color = d.fixed ? FIXED_COLOR : REGULAR_COLOR;
-    d3.select(this).select("rect").attr("fill", d.color)
-}
-
 let nodegroups = null;
 let nodecircles = null;
 let linkdata = null;
@@ -416,16 +387,11 @@ function resetSim() {
     nodedata.exit().remove();
     nodegroups = nodedata.enter()
             .append("g")
-            // .call(force.drag)
-            // .on('contextmenu', rightclick)
-            // .on('mouseover', mouseover)
-            // .on("mouseout", mouseout)
 
     nodegroups.append('text')
             .attr('class', 'nodetext')
             .attr("dominant-baseline", "central")
             .text(d => d.word);
-            // .on("mousedown", mousepress) // TODO figure out how to not break physics
             
     nodecircles = nodegroups
             .append('rect')
@@ -434,21 +400,57 @@ function resetSim() {
             .attr('y', -NODE_HEIGHT/2)
             .attr('width', NODE_WIDTH)
             .attr('height', NODE_HEIGHT);
+
+    let drag = force.drag()
+            .on("dragstart", dragstart)
+            .on("dragend", dragend)
+            .on("drag", dragged);
+        
     nodegroups
-            .call(force.drag)
+            .call(drag)
             .on('contextmenu', rightclick)
             .on('mouseover', mouseover)
             .on("mouseout", mouseout)
-    // var nodetext = nodegroups
-    //         .append('text')
-    //         .attr('class', 'nodetext')
-    //         .attr("dominant-baseline", "central")
-    //         .text(d => d.word);
-  
+            .on('dblclick', dblclick)
+            .on('click', click)
 
     force.on('tick.end', updatePositions);
     
     updatePositions();
+}
+
+function mouseover() {
+    d3.select(this).select("rect").attr("stroke", "#000")
+}
+function mouseout(d) {
+    d3.select(this).select("rect").attr("stroke", null)
+}
+function rightclick(d) {
+    d3.event.preventDefault();
+    d.fixed = !d.fixed;
+    updateNodeColor(d);
+}
+
+function dblclick(d) {
+    toggleWord(d.word, true, false);
+}
+
+function click() {
+    console.log('click');
+}
+
+function dragstart() {
+    console.log('dragstart');
+}
+
+function dragend() {
+    console.log('dragend');
+}
+function dragstart2() {
+    console.log('dragstart2');
+}
+function dragged() {
+    // console.log('dragged');
 }
 
 function stopButton() {
