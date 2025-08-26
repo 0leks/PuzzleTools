@@ -3,38 +3,10 @@
 <html>
     <head>
         <link rel="stylesheet" href="style.css">
-        <title>Word Chain Solver</title>
+        <title>Puzzle Tools</title>
     </head>
     <body>
-
-        <div class="content">
-            
-            <form class="ui" action="#" onsubmit="addWordFormSubmit()">
-                <h1>Word Chain Solver</h1>
-                <textarea id="wordstoadd" cols="10"> </textarea>
-                <button type="submit" style="min-height: 3em;">Add</button>
-                <div>
-                    <label for="charge">Charge</label>
-                    <input type="range" id="charge" name="charge" min="-200" max="-10" value="-40" oninput="updateSettings()" onchange="updateSettings()">
-                    
-                    <label for="linkDistance">linkDistance</label>
-                    <input type="range" id="linkDistance" name="linkDistance" min="10" max="200" value="70" oninput="updateSettings()" onchange="updateSettings()">
-                    
-                    <label for="linkStrength">linkStrength</label>
-                    <input type="range" id="linkStrength" name="linkStrength" min="0" max="1" step="0.05" value="0.8" oninput="updateSettings()" onchange="updateSettings()">
-                </div>
-                
-                <span>Right click to toggle freeze.</span>
-                <span>Double click to show/hide neighbors.</span>
-            </form>
-
-            <svg id="sim2svg">
-                <g class="links"></g>
-                <g class="nodes"></g>
-            </svg>
-        </div>
-
-        <script src="https://d3js.org/d3.v3.min.js"></script>
-        <script src="script.js"></script>
+        <a href="wordchain">Word Chain Solver</a>
+        <a href="nonogram">Nonogram Solver</a>
     </body>
 </html>

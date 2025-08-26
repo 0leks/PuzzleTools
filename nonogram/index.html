@@ -1,0 +1,26 @@
+
+
+<html>
+    <head>
+        <link rel="stylesheet" href="style.css">
+        <title>Nonogram Solver</title>
+    </head>
+    <body>
+        <a href="..">Back</a>
+        <h1>Nonogram Solver</h1>
+        <div>
+            <textarea id="parameters" rows="9" cols="150" onchange="SizeChanged()">{
+    "rows": 10,
+    "cols": 10,
+    "outerDelimeter":",",
+    "innerDelimeter":" ",
+    "topLabels":"2 3,1 3,1 3,3 4,9,2 3,2,4,2 2,3 2 1",
+    "sideLabels":"3 3,1 1 3,5 1,5,2 2,1 1 2,5,6,5,3 1"
+}</textarea>
+        </div>
+
+        <svg id="result_display" width="500" height="500" >
+        </svg>
+        <script src="script.js"></script>
+    </body>
+</html>
