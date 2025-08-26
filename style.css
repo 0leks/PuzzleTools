@@ -1,0 +1,35 @@
+html {
+    height: 100vh;
+}
+
+body {
+    background-color: rgb(186, 186, 186);
+    min-height: 100vh;
+}
+
+a.solverlink {
+    outline-color: transparent;
+}
+
+a:link.solverlink {
+    color: #000000;
+}
+
+a:visited.solverlink {
+    color: #000000;
+}
+
+a:focus.solverlink {
+    text-decoration: none;
+    background: #bae498;
+}
+
+a:hover.solverlink {
+    text-decoration: none;
+    background: #cdfeaa;
+}
+
+a:active.solverlink {
+    background: #6900ff;
+    color: #cdfeaa;
+}

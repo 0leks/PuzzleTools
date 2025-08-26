@@ -443,10 +443,15 @@ function SizeChanged()
 
     let X_OFFSET = maxSideLabels * (CELL_SIZE + CELL_GAP) + CELL_GAP;
     let Y_OFFSET = maxTopLabels * (CELL_SIZE + CELL_GAP) + CELL_GAP;
-    let totalHeight = grid.length * (CELL_SIZE + CELL_GAP) + Y_OFFSET;
+    let totalWidth = (grid[0].length + 1) * (CELL_SIZE + CELL_GAP) + X_OFFSET;
+    if (totalWidth == 0) {
+        totalWidth = 500;
+    }
+    let totalHeight = (grid.length + 1) * (CELL_SIZE + CELL_GAP) + Y_OFFSET;
     if (totalHeight == 0) {
         totalHeight = 500;
     }
+    svg.setAttribute("width", totalWidth);
     svg.setAttribute("height", totalHeight);
     for (let c = 0; c < toplabels.length; c++)
     {
